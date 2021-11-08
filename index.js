@@ -18,6 +18,11 @@ app.get('/hola', function(request, response) {
     response.send('Hola Lorena')
 })
 
+app.get('/contacto', function(request, response) {
+    response.send('contact')
+
+})
+
 
 app.listen(port, function() {
      console.log('Servidor iniciado')

@@ -1,1 +1,6 @@
-Proyecto Lorena
+# Instrucciones
+
+```bash
+npm run dev
+
+
