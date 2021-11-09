@@ -8,6 +8,8 @@ app.use(express.urlencoded({
   
   }))
 
+app.use(express.static(__dirname + '/public'));
+
 app.engine('handlebars', exphbs())
 app.set('view engine', 'handlebars')
 const port = process.env.PORT || 3000
@@ -63,7 +65,11 @@ app.post('/login', function (request, response)  {
         // TODO Meter un estilo tipo Bootstrap
         response.render(
             'login',
-            {message:'Usuario o password incorrecto'})
+            {
+               message:'Usuario o password incorrecto',
+               message_error: true
+            })
+
     }
 })
 
@@ -71,7 +77,9 @@ app.post('/login', function (request, response)  {
 app.post('/contacto', function(request, response) {
     console.log(request.body.email)
     console.log(request.body.message)
-    response.send('formulario enviado')
+    response.render(
+        'contact', 
+        {message: 'Mensaje enviado!', message_error: false})
 
 })
 

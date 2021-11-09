@@ -1,17 +1,22 @@
-
 <h1>Contact</h1>
 
-
 <form method="POST" action="/contacto">
-
-   <label>Email:</label>
-   <input tupe="email" name="email" />
-
-   <label>Mensaje</label>
-   <textarea name="message" ></textarea> />
-   
-   <input type="submit" value="Envia" />
-
+  <div class="mb-3">
+    <label for="exampleInputEmail1" class="form-label">Email address</label>
+    <input
+        type="email"
+        name="email"
+        class="form-control"
+        id="exampleInputEmail1"
+        aria-describedby="emailHelp">
+    <div id="emailHelp" class="form-text">Mail al que te vamos a spamear</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Mensaje</label>
+    <textarea
+        class="form-control"
+        name="message"
+        id="exampleFormControlTextarea1" rows="3"></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
 </form>
-
- 
