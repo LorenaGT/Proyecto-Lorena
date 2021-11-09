@@ -57,6 +57,8 @@ app.get('/about', function (request,response) {
 
 app.post('/about', function (request, response)  {
     const email = request.body.email
+
+})
     
 
 app.get('/login', function(request,response) {
