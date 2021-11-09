@@ -1,0 +1,20 @@
+<h1>Login</h1>
+
+{{# if message }}
+   <p>{{ messsage }}</p>
+{{/if}}
+
+
+<form method="POST" action="/login">
+
+   <label>Usario:</label>
+   <input type="text" name="user" />
+
+   <label>Password</label>
+   <input type= "password" name="password" />
+   
+   <input type="submit" value="Envia" />
+
+   <input type="submit" value="Login" />
+
+</form>
