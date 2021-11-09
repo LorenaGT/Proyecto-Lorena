@@ -47,6 +47,18 @@ app.get('/contacto', function(request, response) {
 
 })
 
+// Nueva pagina/about en el menu salga About
+//Dentro de esa pagima, un titulo (h1), un parrafo, un input para suscribirse
+//Cuando me meto mi email y le dal boton suscrbirir, me sale un mesanej de exito
+// en esa pagina de suscrito correctamente
+app.get('/about', function (request,response) {
+      response.render('about')
+})
+
+app.post('/about', function (request, response)  {
+    const email = request.body.email
+    
+
 app.get('/login', function(request,response) {
     response.render('login')
 })
