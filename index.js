@@ -42,6 +42,36 @@ app.get('/dashboard', (request, response) => {
     response.render('dashboard')
 })
 
+app.get('/cards', (request, response) => {
+    response.render(
+        'cards',
+        {cards: [
+            {
+             id: 1,
+             name: 'miau',
+             description: 'Un descripcion',
+             price: 0.012,
+             avatar: ''
+            },
+            {
+             id: 2,
+             name: 'Pepe',
+             description: 'Description 2',
+             price: 0.13,
+             avatar: ''
+            },
+            {
+             id: 3,
+             name: 'Senior X',
+             description: 'Description 3',
+             price: 0.13,
+             avatar: ''
+            }
+        ]}
+    )
+})
+
+
 app.get('/contacto', function(request, response) {
     response.render('contact')
 
@@ -55,9 +85,8 @@ app.get('/about', function (request,response) {
       response.render('about')
 })
 
-app.post('/about', function (request, response)  {
-    const email = request.body.email
-
+app.post('/about', (request, response) => {
+    response.render('about', {message: 'Te has suscrito!', message_error: false})
 })
     
 

@@ -1,0 +1,22 @@
+<h1>Catalogo de cartas coleccionables</h1>
+
+<!-- Mi lista de cartas -->
+<div>
+  {{#each cards}}
+    <div class="card" style="width: 18rem;">
+      <img src="https://via.placeholder.com/100" class="card-img-top" alt="..." />
+      <div class="card-body">
+        <h5 class="card-title">{{ name }}</h5>
+        <p class="card-text">{{ description }}</p>
+      </div>
+      <ul class="list-group list-group-flush">
+      </ul>
+      <div class="card-body">
+        <a href="/buy/{{ id }}" class="card-link">Buy {{ price }} ETH</a>
+      </div>
+    </div>
+  {{/each}}
+</div>
+
+
+
