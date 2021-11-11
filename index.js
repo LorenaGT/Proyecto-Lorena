@@ -1,7 +1,12 @@
 const express = require('express')
 const exphbs = require ('express-handlebars')
 
+const { Card, CardRepository } = require('./models/card')
+const { DatabaseService } = require('./services/database')
+
+
 const app = express()
+const hbs = exphbs()
 app.use(express.urlencoded({
 
     extended: true
@@ -13,6 +18,13 @@ app.use(express.static(__dirname + '/public'));
 app.engine('handlebars', exphbs())
 app.set('view engine', 'handlebars')
 const port = process.env.PORT || 3000
+
+const db = new DatabaseService()
+
+if(!db.exists()) {
+    db.init()
+}
+
 
 function isAuthenticated(user, password) {
     return user == 'admin' && password == 'admin'
@@ -42,35 +54,6 @@ app.get('/dashboard', (request, response) => {
     response.render('dashboard')
 })
 
-app.get('/cards', (request, response) => {
-    response.render(
-        'cards',
-        {cards: [
-            {
-             id: 1,
-             name: 'miau',
-             description: 'Un descripcion',
-             price: 0.012,
-             avatar: ''
-            },
-            {
-             id: 2,
-             name: 'Pepe',
-             description: 'Description 2',
-             price: 0.13,
-             avatar: ''
-            },
-            {
-             id: 3,
-             name: 'Senior X',
-             description: 'Description 3',
-             price: 0.13,
-             avatar: ''
-            }
-        ]}
-    )
-})
-
 
 app.get('/contacto', function(request, response) {
     response.render('contact')
@@ -94,6 +77,25 @@ app.get('/login', function(request,response) {
     response.render('login')
 })
 
+app.get('/cards', function(request,response) {
+    response.render('cards',  {cards: new CardRepository().getCards()})
+})
+
+app.post('/cards', (request, response) => {
+    const cardName = request.body.name
+
+    const price = request.body.price
+    const description = request.body.description
+    const newCard = new Card(
+    cardName, description, price)
+
+   
+    const database = new DatabaseService()
+    database.storeOne('cards', newCard) 
+
+    response.redirect('/cards')
+})
+    
 app.post('/login', function (request, response)  {
     const user = request.body.user
     const password = request.body.password
