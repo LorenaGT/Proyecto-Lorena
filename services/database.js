@@ -26,12 +26,22 @@ class DatabaseService {
             newData[key].push(instance)
         }
 
-        fs.writeFileSync(this.DB_FILE_PATH, JSON.stringify(newData))
+        fs.writeFileSync(this.DB_FILE_PATH, JSON.stringify(newData, null, ' '))
 
         return newData
     }
 
-    // Guarda los datos en la clave key
+    
+    removeOne(key,instanceId) {
+      const elementItem = this.get(key)  
+      const itemToRemoveIndex = elementList.findIndex(
+          item => item.id === instanceId)
+         elementList.splice(itemToRemoveIndex, 1)
+
+         // Guadar la nueva lista en la BD
+      this.store(key, elementList)
+    }
+
     store(key,data) {
         const dbData = JSON.parse(fs.readFileSync(this.DB_FILE_PATH)) 
         let newData = {...dbData}
@@ -40,18 +50,24 @@ class DatabaseService {
         const jsonData= JSON.stringify(newData)
 
        
-        fs.writeFileSync(this.DB_FILE_PATH, jsonData)
+        fs.writeFileSync(this.DB_FILE_PATH, jsonData,  null, ' ')
         
         return newData
-    
     }
 
-
+    findOne(key, instancedId) {
+        const elementList = this.get(key)
+        return elementList.find(item => item.id === instancedId)
+     }
+      
+     
     // Toma los datos basado en esta clave
     get(key) {
         const dbData = JSON.parse(fs.readFileSync(this.DB_FILE_PATH))
         return dbData[key]
     }
+
+    
     
     
 }

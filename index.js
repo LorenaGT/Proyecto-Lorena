@@ -30,6 +30,11 @@ function isAuthenticated(user, password) {
     return user == 'admin' && password == 'admin'
 }
 
+function checkValidCardValues(cardName, description, price) {
+    return cardName && description && price
+
+}
+
 // Las vistas de mi web
 // GET PUT POST DELETE - API
 // GET cuando pedimos una web
@@ -52,6 +57,14 @@ app.get('/hola', function(request, response) {
 
 app.get('/dashboard', (request, response) => {
     response.render('dashboard')
+})
+
+
+
+app.get('/delete_card/:id', (request, response) => {
+    db.removeOne('cards', request.params.id)
+    response.redirect('/cards')
+
 })
 
 
@@ -81,11 +94,40 @@ app.get('/cards', function(request,response) {
     response.render('cards',  {cards: new CardRepository().getCards()})
 })
 
+app.get('/cards/:id', (request, response) => {
+    const card = db.findOne(
+        'cards',
+        request.params.id)
+        // Devolver un error si cara es vacido
+        //HTTP Error 404
+        if (!card) {
+            response.status(404).send()
+            return
+        }
+
+    response.render('card', {card: card})
+})
+
+
 app.post('/cards', (request, response) => {
     const cardName = request.body.name
-
     const price = request.body.price
     const description = request.body.description
+ 
+    if(!checkValidCardValues(cardName, description, price)) {
+        response.status(400).render (
+        'cards',
+        {
+            cards: new CardRepository().getCards(),
+            message: 'Necesitamos que rellenes todos los campos para crear la carta',
+            message_error: true
+        }
+
+      )
+      return
+    }
+
+
     const newCard = new Card(
     cardName, description, price)
 
