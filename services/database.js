@@ -15,6 +15,8 @@ class DatabaseService {
     exists() {
         return fs.existsSync(this.DB_FILE_PATH)
     }
+
+    
      
     storeOne(key, instance) {
         const dbData = JSON.parse(fs.readFileSync(this.DB_FILE_PATH))
@@ -33,7 +35,7 @@ class DatabaseService {
 
     
     removeOne(key,instanceId) {
-      const elementItem = this.get(key)  
+      const elementList = this.get(key)  
       const itemToRemoveIndex = elementList.findIndex(
           item => item.id === instanceId)
          elementList.splice(itemToRemoveIndex, 1)
