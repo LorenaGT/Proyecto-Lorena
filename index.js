@@ -2,24 +2,19 @@ const express = require('express')
 const exphbs = require('express-handlebars')
 const morgan = require('morgan')
 
-const { Card, CardRepository } = require('./models/card')
+const { CardRepository, Card } = require('./models/card')
 const { DatabaseService } = require('./services/database')
-
 
 const app = express()
 const hbs = exphbs()
 
-
 app.use(express.urlencoded({
     extended: true
 }))
-
 app.use(express.json());
 app.use(morgan('dev'))
-
 app.use(express.static(__dirname + '/public'));
-
-app.engine('handlebars', exphbs())
+app.engine('handlebars', hbs)
 app.set('view engine', 'handlebars')
 const port = process.env.PORT || 3000
 
@@ -29,59 +24,65 @@ if (!db.exists()) {
     db.init()
 }
 
-
 function isAuthenticated(user, password) {
+    // TODO Comprobar en base de datos el usuario
     return user == 'admin' && password == 'admin'
 }
 
 function checkValidCardValues(body) {
     return body.name && body.description && body.price
-
 }
+
 
 // Las vistas de mi web
 // GET PUT POST DELETE - API
 // GET cuando pedimos una web
-
-// POST Cuando enviamos un form (Login, Registro)
-// Una pagina de login
-// Cuando alguien meta user "admin" y password "admin"
-// 1. Decirme que estoy autenticado "EXITO"
-// 2. Redireccione a una pagina interna
-// 3. Si el user password no es admin admin, mostrar "ERROR!"
 app.get('/', function (request, response) {
     response.render('index')
 })
 
+// POST Cuando enviamos un form (Login) /login
+// Un pagina de login
+// Cuando alguien meta user "admin" y password "admin"
+// 1. decirme que estoy autenticado "EXITO!"
+// 2. redireccione a una pagina interna /dashboard
+// 3. si el user password no es admin admin, mostrar "ERROR!"
 
 
-app.get('/hola', function (request, response) {
-    response.send('Hola Lorena')
+app.get('/login', (request, response) => {
+    response.render('login')
 })
 
-app.get('/dashboard', (request, response) => {
-    response.render('dashboard')
+app.post('/login', (request, response) => {
+    const user = request.body.user
+    const password = request.body.password
+
+    if (isAuthenticated(user, password)) {
+        response.redirect('/dashboard')
+    } else {
+        response.render(
+            'login',
+            {
+                message: 'Usuario o password incorrecto',
+                message_error: true
+            }
+        )
+    }
 })
 
+app.post('/search', (request, response) => {
+    // Buscar en cards por nombre
+    cards = db.search('cards', 'name', request.body.query)
 
-
-app.get('/delete_card/:id', (request, response) => {
-    db.removeOne('cards', request.params.id)
-    response.redirect('/cards')
-
+    // Hacer un render con los cartas elegidas
+    response.render('cards', {cards: cards})
 })
-
-
-app.get('/contacto', function (request, response) {
-    response.render('contact')
-
-})
-
-// Nueva pagina/about en el menu salga About
-//Dentro de esa pagima, un titulo (h1), un parrafo, un input para suscribirse
-//Cuando me meto mi email y le dal boton suscrbirir, me sale un mesanej de exito
-// en esa pagina de suscrito correctamente
-app.get('/about', function (request, response) {
+// Nueva pagina /about, en el menu salga About (/about)
+// Dentro de esa pagina, un titulo (h1), un parrafo, un input para suscribirme
+// a una newsletter
+// Cuando meta mi email y le de al boton de suscribir, me sale un mensaje de exito
+// en esa pagina de "suscrito correctamente"
+app.get('/about', (request, response) => {
     response.render('about')
 })
 
@@ -89,116 +90,99 @@ app.post('/about', (request, response) => {
     response.render('about', { message: 'Te has suscrito!', message_error: false })
 })
 
-
-app.get('/login', function (request, response) {
-    response.render('login')
+app.get('/dashboard', (request, response) => {
+    response.render('dashboard')
 })
 
-app.get('/cards', function (request, response) {
-    response.render('cards', { cards: CardRepository().getCards() })
-})
-
-app.get('/cards/:id', (request, response) => {
-    const card = db.findOne(
+app.get('/cards', (request, response) => {
+    response.render(
         'cards',
-        request.params.id)
-    // Devolver un error si cara es vacido
-    //HTTP Error 404
-    if (!card) {
-        response.status(404).send()
-        return
+        { cards: CardRepository.getCards() }
+    )
+})
+
+app.get('/cards', (request, response) => { 
+    const query = request.query.text
+    let cards
+
+    if (query) {
+        cards = db.search('cards', 'name', query)
+    } else {
+        cards = db.get('cards')
     }
 
-    response.render('card', { card: card })
+    response.render(
+        'cards',
+        {
+            cards: cards,
+            query: query
+        }
+    )
+    
 })
-
 
 app.post('/cards', (request, response) => {
     const cardName = request.body.name
-    const price = request.body.price
     const description = request.body.description
-
-    if (!checkValidCardValues(cardName, description, price)) {
+    const price = request.body.price
+    // TODO Comprobar si es vacio y si es asi
+    // mostrar un error
+    if (!checkValidCardValues(request.body)) {
         response.status(400).render(
             'cards',
             {
-                cards: CardRepository().getCards(),
+                cards: CardRepository.getCards(),
                 message: 'Necesitamos que rellenes todos los campos para crear la carta',
                 message_error: true
             }
-
         )
         return
     }
 
-
     const newCard = new Card(
         cardName, description, price)
 
-
-    const database = new DatabaseService()
-    database.storeOne('cards', newCard)
+    db.storeOne('cards', newCard)
 
     response.redirect('/cards')
 })
 
-app.post('/login', function (request, response) {
-    const user = request.body.user
-    const password = request.body.password
-
-
-
-    if (isAuthenticated(user, password)) {
-        // TODO Implement dashboard
-        response.redirect('/dashboard')
-    } else {
-        // TODO Mostrar un mensaje en el login en el login.handlebars
-        // TODO Meter un estilo tipo Bootstrap
-        response.render(
-            'login',
-            {
-                message: 'Usuario o password incorrecto',
-                message_error: true
-            })
-
-    }
+app.get('/delete_card/:id', (request, response) => {
+    db.removeOne('cards', request.params.id)
+    response.redirect('/cards')
 })
 
+app.get('/contacto', function (request, response) {
+    response.render('contact')
+})
 
 app.post('/contacto', function (request, response) {
-    console.log(request.body.email)
-    console.log(request.body.message)
+    // TODO Enviar mail con sendgrid
     response.render(
         'contact',
-        { message: 'Mensaje enviado!', message_error: false })
-
+        { message: 'Mensaje enviado!', message_error: false }
+    )
 })
 
-app.get('/users/:user', function (request, response) {
-    // TODO Hacer una consulta para traerme los datos
-    // de este usuario
-    response.send(`Usuario ${request.params.user}`)
-})
-
-// API para el recurso cards (GET POST PUT/PATCH DELETE)
-// GET/api/v1/ {resource} // Listar recurso (cards)
-// GET/api/cards/:id   
+// API para el recurso cards (GET POST PUT/PATCH DELETE)  API Rest JSON
+// GET /api/v1/cards  // Listar recurso (cards)
 app.get('/api/v1/cards', (request, response) => {
-    const cards = new CardRepository().getCards()
+    const cards = CardRepository.getCards()
     response.send(cards)
 })
 
-//  POST   /api/v1/cards   //Crear un elemento   
+// POST /api/v1/cards      // Crear una carta
 app.post('/api/v1/cards', (request, response) => {
     if (!checkValidCardValues(request.body)) {
         response.status(400).send(
             {
                 'error': 400,
-                'message': 'No has rellenado todos los datos obligatorios'
+                'message': 'No has rellenado todos los datos obligatorios: name, price, description'
             }
         )
         return
     }
+
     const card = new Card(
         request.body.name,
         request.body.description,
@@ -207,12 +191,57 @@ app.post('/api/v1/cards', (request, response) => {
 
     response.status(201).send(card)
 })
-// PUT/api/v1/cards          // Editar un elemento  
-// app.put('/api/v1/cards/:id', function(request,response)
 
-// DELETE/api/v1/cards/:id    // Eliminar un elemento  
+// GET /api/v1/cards/:id   // Muestra una carta
+app.get('/api/v1/cards/:id', (request, response) => {
+    const card = db.findOne('cards', request.params.id)
+
+    if (!card) {
+        response.status(404).send(
+            { 'error': 404, 'message': 'No existe el recurso 404' }
+        )
+        return
+    }
+
+    response.send(card)
+})
+
+// PUT /api/v1/cards/:id       // Editar un elemento
+app.put('/api/v1/cards/:id', (request, response) => {
+    const card = db.findOne('cards', request.params.id)
+
+    if (!card) {
+        response.status(404).send(
+            { 'error': 404, 'message': 'No existe el recurso 404' }
+        )
+        return
+    }
+
+    // Solo se puede editar name, price, o description
+    // Si me llega uno de estos valores, dejo editar
+    // Si no me llega ninguno o me llega cualquier otro
+    // devuelvo un 400
+    const cardRequest = _.pick(request.body, ['name', 'price', 'description'])
+
+    if (_.isEmpty(cardRequest)) {
+        response.status(400).send(
+            {
+                'error': 400,
+                'message': 'No has rellenado alguno de los datos obligatorios: name, price, description'
+            }
+        )
+        return
+    }
+
+    const cardEdited = { ...card, ...cardRequest }
+    db.updateOne('cards', cardEdited)
+
+    response.send(cardEdited)
+})
+
+// DELETE /api/v1/cards/:id    // Eliminar un elemento
 app.delete('/api/v1/cards/:id', (request, response) => {
-    console.log(request.params.id)
+
     if (!db.findOne('cards', request.params.id)) {
         response.status(404).send(
             { 'error': 404, 'message': 'No existe el recurso 404' }
@@ -222,17 +251,9 @@ app.delete('/api/v1/cards/:id', (request, response) => {
 
     db.removeOne('cards', request.params.id)
     response.status(204).send()
-
 })
-
-
 
 
 app.listen(port, function () {
-    console.log(`Servidor iniciado ${port}`)
+    console.log(`Servidor iniciado en ${port}`)
 })
-
-
-
-
-

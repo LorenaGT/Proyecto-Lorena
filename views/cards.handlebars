@@ -7,6 +7,12 @@
 >Crea tu carta</a>
 
 <!-- Mi lista de cartas -->
+{{#if query}}
+  <div class="row">
+      Hay {{ cards.length }} resultados para la consulta "{{ query }}"
+  </div>
+{{/if}}
+
 <div class="row">
   {{#each cards}}
     <div class="col-md-4">
